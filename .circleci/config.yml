@@ -1,7 +1,7 @@
 jobs:
   build:
     docker:
-      - image: docker:stable-git
+      - image: docker:18.09-git
     steps:
       - checkout
       - setup_remote_docker
@@ -11,18 +11,10 @@ jobs:
       - run:
           name: Install trivy
           command: |
-            apk add --update-cache --upgrade curl
-            VERSION=$(
-                curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | \
-                grep '"tag_name":' | \
-                sed -E 's/.*"v([^"]+)".*/\1/'
-            )
-
-            wget https://github.com/aquasecurity/trivy/releases/download/v${VERSION}/trivy_${VERSION}_Linux-64bit.tar.gz
-            tar zxvf trivy_${VERSION}_Linux-64bit.tar.gz
-            mv trivy /usr/local/bin
+            apk add --update-cache --upgrade --update curl
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
       - run:
-          name: Scan the local image with trivy
+          name: Scan the local image with trivy (light)
           command: trivy --exit-code 0 --no-progress trivy-ci-test:${CIRCLE_SHA1}
 workflows:
   version: 2
